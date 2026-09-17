@@ -276,7 +276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setMockedLocation,
       dismissPrompt: () => setPrompt(null),
       createMontage,
-      dismissUnlock: () => setJustUnlocked([]),
+      dismissUnlock: () => setJustUnlocked((current) => current.slice(1)),
       dismissToast: (id) => setToasts((current) => current.filter((toast) => toast.id !== id)),
     }),
     [

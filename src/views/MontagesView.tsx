@@ -105,7 +105,7 @@ export function MontagesView() {
             <li key={montage.id} className="card">
               <h3>{montage.title}</h3>
               <p className={montage.status === "encoded" ? "ok" : "muted"}>
-                {montage.status === "encoded" ? "Koodattu tiedosto" : "Vain samoistelu"}
+                {montage.status === "encoded" ? "Koodattu tiedosto" : "Vain esikatselu"}
               </p>
               <p>{summarizeMontage(montage)}</p>
               <MontageResult montageId={montage.id} />

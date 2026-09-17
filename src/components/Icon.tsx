@@ -1,22 +1,26 @@
 type IconName = "capture" | "memories" | "montages" | "settings" | "close";
 
 const PATHS: Record<IconName, string> = {
-  capture: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0-6 2.2 2H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3.8L12 2Z",
-  memories: "M4 5h16v14H4V5Zm2 2v10h12V7H6Zm2 2h8v2H8V9Z",
-  montages: "M4 6h10v12H4V6Zm12 2h4v10h-4V8ZM7 9h4v2H7V9Z",
+  capture:
+    "M8 7.5 9.2 5.8A1.5 1.5 0 0 1 10.4 5h3.2a1.5 1.5 0 0 1 1.2.8L16 7.5h2.2A1.8 1.8 0 0 1 20 9.3v8A1.8 1.8 0 0 1 18.2 19H5.8A1.8 1.8 0 0 1 4 17.3v-8A1.8 1.8 0 0 1 5.8 7.5H8Zm4 8.2a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4Z",
+  memories:
+    "M6 5.5h12A1.5 1.5 0 0 1 19.5 7v12L12 15.5 4.5 19V7A1.5 1.5 0 0 1 6 5.5Z",
+  montages:
+    "M5 6.5h9.5v11H5v-11Zm11 2.5h3v8.5h-3V9Z",
   settings:
-    "M10.1 2.5h3.8l.5 2.2a6.8 6.8 0 0 1 1.8 1l2.1-.8 1.9 3.3-1.6 1.5c.1.5.2 1 .2 1.5s-.1 1-.2 1.5l1.6 1.5-1.9 3.3-2.1-.8a6.8 6.8 0 0 1-1.8 1l-.5 2.2h-3.8l-.5-2.2a6.8 6.8 0 0 1-1.8-1l-2.1.8-1.9-3.3 1.6-1.5a7 7 0 0 1-.2-1.5c0-.5.1-1 .2-1.5L3.8 8.2 5.7 4.9l2.1.8a6.8 6.8 0 0 1 1.8-1l.5-2.2ZM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z",
-  close: "M6 6l12 12M18 6 6 18",
+    "M12 8.4a3.6 3.6 0 1 1 0 7.2 3.6 3.6 0 0 1 0-7.2Zm0-4.9.8 2.1 2.1-.7 1.6 1.6-.7 2.1 2.1.8v2.2l-2.1.8.7 2.1-1.6 1.6-2.1-.7L12 20.5l-.8-2.1-2.1.7-1.6-1.6.7-2.1-2.1-.8V12l2.1-.8-.7-2.1 1.6-1.6 2.1.7Z",
+  close: "M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5",
 };
 
 export function Icon({ name, label }: { name: IconName; label?: string }) {
+  const stroke = name === "close";
   return (
     <svg viewBox="0 0 24 24" aria-hidden={label ? undefined : true} aria-label={label} className="icon">
       <path
         d={PATHS[name]}
-        fill={name === "close" ? "none" : "currentColor"}
-        stroke={name === "close" ? "currentColor" : "none"}
-        strokeWidth={name === "close" ? 1.8 : undefined}
+        fill={stroke ? "none" : "currentColor"}
+        stroke={stroke ? "currentColor" : "none"}
+        strokeWidth={stroke ? 1.8 : undefined}
         strokeLinecap="round"
       />
     </svg>

@@ -140,6 +140,7 @@ export function CaptureView() {
         ) : null}
         {phase === "idle" || phase === "error" ? (
           <div className="viewfinder-idle">
+            <p className="viewfinder-mark">10s</p>
             <p>Yksi pieni otos päivästä. Ei mainoksia, ei tiliä.</p>
           </div>
         ) : null}
