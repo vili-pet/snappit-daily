@@ -131,22 +131,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!navigator.geolocation) return undefined;
     let cancelled = false;
     let watchId: number | null = null;
-    void ensureLocationPermission().then((granted) => {
-      if (cancelled) return;
-      if (!granted) {
+    void ensureLocationPermission()
+      .then((granted) => {
+        if (cancelled) return;
+        if (!granted) {
+          pushToast("Sijaintilupa puuttuu. Käytä demopaikannusta testaukseen.");
+          return;
+        }
+        watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            applyCoord({ lat: position.coords.latitude, lng: position.coords.longitude });
+          },
+          () => {
+            pushToast("Sijaintia ei saatu. Käytä demopaikannusta testaukseen.");
+          },
+          { enableHighAccuracy: false, maximumAge: 15_000, timeout: 12_000 },
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
         pushToast("Sijaintilupa puuttuu. Käytä demopaikannusta testaukseen.");
-        return;
-      }
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          applyCoord({ lat: position.coords.latitude, lng: position.coords.longitude });
-        },
-        () => {
-          pushToast("Sijaintia ei saatu. Käytä demopaikannusta testaukseen.");
-        },
-        { enableHighAccuracy: false, maximumAge: 15_000, timeout: 12_000 },
-      );
-    });
+      });
     return () => {
       cancelled = true;
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
