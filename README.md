@@ -69,6 +69,47 @@ Luvat kysytään vasta, kun avaat kameran tai kytket paikkaseurannan. Evätty lu
 
 Esimerkki GitHub Pages -workflowksi: buildaa `dist` ja julkaise se `gh-pages`-haarana. Sovelluksella ei ole backend-ympäristömuuttujia.
 
+## Android-sovellus (Capacitor)
+
+Sama web-koodi paketoidaan natiiviksi Android-sovellukseksi Capacitorilla. Web-assetit kulkevat APK:n mukana, joten sovellus toimii ilman verkkoa.
+
+Vaatimukset: Node 22+, JDK 21, Android SDK (platform 35 + build-tools). Aseta `ANDROID_HOME` tai `android/local.properties` (`sdk.dir=...`).
+
+```bash
+npm run android:sync      # vite build + cap sync
+npm run android:debug     # debug-APK: android/app/build/outputs/apk/debug/app-debug.apk
+npm run android:release   # allekirjoitettu AAB + APK (vaatii keystoren)
+npm run android:assets    # generoi ikonit ja splashit ikoni-SVG:stä
+```
+
+Sovellustunnus on `pet.vili.snappit`, nimi **Snappit**, näkymä lukittu pystyasentoon. Luvat kysytään ajonaikaisesti: kamera ja mikrofoni `getUserMedia`-kutsun yhteydessä, sijainti `@capacitor/geolocation`-liitännäisellä. Service workeria ei rekisteröidä natiivissa, koska APK tarjoilee assetit paikallisesti.
+
+### Julkaisubuild ja allekirjoitus
+
+1. Luo keystore kerran ja säilytä se repon ulkopuolella:
+
+   ```bash
+   keytool -genkeypair -v -keystore ~/snappit-release.jks -keyalg RSA -keysize 2048 \
+     -validity 10000 -alias snappit
+   ```
+
+2. Luo `android/keystore.properties` (gitignoroitu):
+
+   ```properties
+   storeFile=/absolute/path/to/snappit-release.jks
+   storePassword=...
+   keyAlias=snappit
+   keyPassword=...
+   ```
+
+3. Nosta `versionCode` ja `versionName` tiedostossa `android/app/build.gradle` ja aja `npm run android:release`. Tulokset: `android/app/build/outputs/bundle/release/app-release.aab` (Play Console) ja `android/app/build/outputs/apk/release/app-release.apk` (suora jakelu).
+
+Ilman `keystore.properties`-tiedostoa release-buildi jää allekirjoittamatta, mutta kääntyy silti.
+
+### Play Store
+
+Play Console vaatii AAB:n, tietosuojaselosteen ja data safety -lomakkeen. Snappit ei lähetä dataa laitteelta, joten vastaus on "no data collected". Deklaroidut luvat: kamera, mikrofoni ja sijainti — kaikki valinnaisia sovelluksen toiminnan kannalta.
+
 ## Testit
 
 Yksikkötestit kattavat putken ja XP:n, päiväryhmityksen, geofence-siirtymät (hysteresis) sekä koosteen jaksonvalinnan:

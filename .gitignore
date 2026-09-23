@@ -5,3 +5,6 @@ dev-dist
 *.local
 .vite
 coverage
+*.keystore
+*.jks
+android/keystore.properties

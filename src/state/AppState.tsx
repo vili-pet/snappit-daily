@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { evaluateAchievements, newlyUnlocked } from "../lib/achievements";
 import { createDemoClips } from "../lib/demo-data";
+import { ensureLocationPermission } from "../lib/native";
 import {
   deleteClip as dbDeleteClip,
   deleteDemoClips,
@@ -128,16 +129,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     if (!navigator.geolocation) return undefined;
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        applyCoord({ lat: position.coords.latitude, lng: position.coords.longitude });
-      },
-      () => {
-        pushToast("Sijaintia ei saatu. Käytä demopaikannusta testaukseen.");
-      },
-      { enableHighAccuracy: false, maximumAge: 15_000, timeout: 12_000 },
-    );
-    return () => navigator.geolocation.clearWatch(watchId);
+    let cancelled = false;
+    let watchId: number | null = null;
+    void ensureLocationPermission().then((granted) => {
+      if (cancelled) return;
+      if (!granted) {
+        pushToast("Sijaintilupa puuttuu. Käytä demopaikannusta testaukseen.");
+        return;
+      }
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          applyCoord({ lat: position.coords.latitude, lng: position.coords.longitude });
+        },
+        () => {
+          pushToast("Sijaintia ei saatu. Käytä demopaikannusta testaukseen.");
+        },
+        { enableHighAccuracy: false, maximumAge: 15_000, timeout: 12_000 },
+      );
+    });
+    return () => {
+      cancelled = true;
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    };
   }, [
     applyCoord,
     pushToast,
