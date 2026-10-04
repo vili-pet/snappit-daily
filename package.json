@@ -13,8 +13,8 @@
     "lint": "eslint .",
     "android:assets": "node scripts/make-android-assets.mjs && capacitor-assets generate --android --iconBackgroundColor '#f6f1e8' --iconBackgroundColorDark '#1c1916' --splashBackgroundColor '#f6f1e8' --splashBackgroundColorDark '#1c1916'",
     "android:sync": "npm run build && cap sync android",
-    "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
-    "android:release": "npm run android:sync && cd android && ./gradlew bundleRelease assembleRelease"
+    "android:debug": "npm run android:sync && node scripts/gradlew.mjs assembleDebug",
+    "android:release": "npm run android:sync && node scripts/gradlew.mjs bundleRelease assembleRelease"
   },
   "repository": {
     "type": "git",
@@ -47,5 +47,10 @@
     "vite": "^7.1.5",
     "vite-plugin-pwa": "^1.0.3",
     "vitest": "^3.2.4"
+  },
+  "allowScripts": {
+    "sharp@0.32.6": true,
+    "sharp@0.35.4": true,
+    "esbuild@0.28.2": true
   }
 }
