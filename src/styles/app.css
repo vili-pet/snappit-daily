@@ -1310,6 +1310,17 @@ button:disabled {
   padding: 7px 12px;
 }
 
+.update-banner {
+  display: block;
+  background: linear-gradient(140deg, #5dbdf7, var(--accent-strong));
+  color: #fff;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 9px 12px;
+  box-shadow: 0 6px 16px rgba(69, 177, 244, 0.3);
+}
+
 .sheet {
   position: fixed;
   inset: 0;

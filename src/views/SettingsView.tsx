@@ -4,9 +4,16 @@ import { DEMO_OUTSIDE, DEMO_PLACES } from "../lib/geofence";
 import { createId } from "../lib/id";
 import { ACHIEVEMENTS } from "../lib/achievements";
 import { useApp, useProgress } from "../hooks/useApp";
+import { BUILD_NUMBER, openLatestApk, type UpdateCheck } from "../lib/updater";
 import type { Place } from "../lib/types";
 
-export function SettingsView() {
+export function SettingsView({
+  update,
+  onCheck,
+}: {
+  update?: UpdateCheck | null;
+  onCheck?: () => void;
+}) {
   const {
     settings,
     updateSettings,
@@ -236,6 +243,35 @@ export function SettingsView() {
           Snappit never uploads clips, location or identifiers to a server. Places are stored
           locally; the UI shows names, never a map.
         </p>
+      </section>
+
+      <section className="card">
+        <h2>Updates</h2>
+        <p>
+          This build: {BUILD_NUMBER > 0 ? `1.0.${BUILD_NUMBER}` : "local dev build"}. New builds
+          are published automatically on every push to GitHub.
+        </p>
+        <p className="muted">
+          {update?.status === "available" || update?.status === "dev-build"
+            ? `Version 1.0.${update.build} is available.`
+            : update?.status === "up-to-date"
+              ? "You are on the latest build."
+              : update?.status === "offline"
+                ? "Could not reach GitHub just now."
+                : "Checking…"}
+        </p>
+        <div className="row">
+          <button type="button" className="btn btn-ghost" onClick={onCheck}>
+            Check now
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => openLatestApk()}
+          >
+            Download latest APK
+          </button>
+        </div>
       </section>
 
       <section className="card">

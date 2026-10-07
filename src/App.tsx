@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AppHeader } from "./components/AppHeader";
 import { BottomNav } from "./components/BottomNav";
 import { Overlays } from "./components/Overlays";
@@ -10,6 +11,7 @@ import { HomeView } from "./views/HomeView";
 import { MemoriesView } from "./views/MemoriesView";
 import { MontagesView } from "./views/MontagesView";
 import { SettingsView } from "./views/SettingsView";
+import { checkForUpdate, openLatestApk, type UpdateCheck } from "./lib/updater";
 
 export default function App() {
   return (
@@ -22,7 +24,13 @@ export default function App() {
 function Shell() {
   const { ready, settings } = useApp();
   const { route, navigate } = useHashRoute();
+  const [update, setUpdate] = useState<UpdateCheck | null>(null);
   useTheme(settings.theme);
+
+  useEffect(() => {
+    if (!ready) return;
+    void checkForUpdate().then(setUpdate);
+  }, [ready]);
 
   return (
     <div className="app-frame">
@@ -30,6 +38,15 @@ function Shell() {
         Skip to content
       </a>
       <div className="app-shell">
+        {update?.status === "available" || update?.status === "dev-build" ? (
+          <button
+            type="button"
+            className="update-banner"
+            onClick={() => openLatestApk()}
+          >
+            Update available (1.0.{update.build}) — tap to update
+          </button>
+        ) : null}
         {settings.demoDataEnabled ? (
           <p className="demo-banner" role="status">
             Demo data is visible. It is marked and can be removed in Settings.
@@ -48,7 +65,7 @@ function Shell() {
           ) : route.view === "montages" ? (
             <MontagesView />
           ) : (
-            <SettingsView />
+            <SettingsView update={update} onCheck={() => void checkForUpdate().then(setUpdate)} />
           )}
         </main>
         <BottomNav route={route} onNavigate={navigate} />
