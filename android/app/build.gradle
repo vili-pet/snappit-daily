@@ -7,8 +7,11 @@ android {
         applicationId "pet.vili.snappit"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // CI builds get a strictly increasing version code (GitHub run number),
+        // so every pushed APK installs as an update on the phone.
+        def runNumber = System.getenv("GITHUB_RUN_NUMBER")
+        versionCode runNumber != null ? runNumber.toInteger() : 1
+        versionName runNumber != null ? "1.0.${runNumber}" : "1.0-local"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
