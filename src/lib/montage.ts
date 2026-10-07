@@ -50,7 +50,7 @@ export function summarizeMontage(montage: Montage): string {
   return montage.reason ?? "Kooste toistetaan peräkkäin ilman uutta koodausta.";
 }
 
-function weekNumber(date: Date): number {
+export function weekNumber(date: Date): number {
   const target = new Date(date);
   target.setHours(0, 0, 0, 0);
   target.setDate(target.getDate() + 3 - ((target.getDay() + 6) % 7));

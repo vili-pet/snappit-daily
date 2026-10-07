@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { ClipCard } from "../components/ClipCard";
 import { EmptyState } from "../components/EmptyState";
+import { Icon } from "../components/Icon";
+import { VideoThumb } from "../components/VideoThumb";
 import {
-  formatDateHeading,
-  formatMonthTitle,
+  formatCardDateEN,
+  formatMonthHeadingEN,
   groupClipsByDate,
-  heatmapLevel,
-  monthGrid,
-  weekdayLabels,
+  groupClipsByMonth,
 } from "../lib/dates";
 import type { Route } from "../lib/route";
 import { useApp } from "../hooks/useApp";
@@ -19,164 +19,77 @@ export function MemoriesView({
   route: Extract<Route, { view: "memories" }>;
   onNavigate: (route: Route) => void;
 }) {
-  const { clips, removeClip, places } = useApp();
-  const [placeFilter, setPlaceFilter] = useState("all");
-  const [monthCursor, setMonthCursor] = useState(() => {
-    const base = route.dateKey ? new Date(route.dateKey) : new Date();
-    return { year: base.getFullYear(), month: base.getMonth() };
-  });
+  const { clips, removeClip } = useApp();
+  const [openDay, setOpenDay] = useState<string | null>(route.dateKey ?? null);
 
-  const filtered = clips.filter((clip) => placeFilter === "all" || clip.placeId === placeFilter);
-  const groups = groupClipsByDate(filtered);
-  const counts = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const clip of clips) {
-      map.set(clip.dateKey, (map.get(clip.dateKey) ?? 0) + 1);
-    }
-    return map;
-  }, [clips]);
+  const months = useMemo(() => groupClipsByMonth(clips), [clips]);
+  const groups = useMemo(() => groupClipsByDate(clips), [clips]);
 
-  const selectedDay = route.dateKey;
-  const dayClips = selectedDay ? (groups.get(selectedDay) ?? []) : [];
+  if (clips.length === 0) {
+    return (
+      <section className="view timeline-view">
+        <header className="view-header">
+          <h1>Your Timeline</h1>
+          <p className="lede">Your daily Snappits, beautifully organized</p>
+        </header>
+        <EmptyState
+          title="No Snappits yet"
+          body="Capture your first 10-second moment and it will show up here."
+          action={{ label: "Capture a Snappit", onClick: () => onNavigate({ view: "capture" }) }}
+        />
+      </section>
+    );
+  }
 
   return (
-    <section className="view memories-view">
+    <section className="view timeline-view">
       <header className="view-header">
-        <p className="kicker">Muistot</p>
-        <h1>Aikajana ja kalenteri</h1>
-        <div className="segment" role="tablist" aria-label="Näkymä">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={route.mode === "list"}
-            className={route.mode === "list" ? "is-active" : undefined}
-            onClick={() => onNavigate({ view: "memories", mode: "list", dateKey: route.dateKey })}
-          >
-            Aikajana
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={route.mode === "calendar"}
-            className={route.mode === "calendar" ? "is-active" : undefined}
-            onClick={() => onNavigate({ view: "memories", mode: "calendar", dateKey: route.dateKey })}
-          >
-            Kalenteri
-          </button>
-        </div>
-        <label className="field">
-          <span>Paikka</span>
-          <select value={placeFilter} onChange={(event) => setPlaceFilter(event.target.value)}>
-            <option value="all">Kaikki</option>
-            {places.map((place) => (
-              <option key={place.id} value={place.id}>
-                {place.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <h1>Your Timeline</h1>
+        <p className="lede">Your daily Snappits, beautifully organized</p>
       </header>
 
-      {clips.length === 0 ? (
-        <EmptyState
-          title="Ei vielä klippejä"
-          body="Kuvaa ensimmäinen 10 sekunnin hetki tai kytke demodata asetuksista."
-          action={{ label: "Kuvaa", onClick: () => onNavigate({ view: "capture" }) }}
-        />
-      ) : route.mode === "calendar" ? (
-        <div className="calendar">
-          <div className="calendar-nav">
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() =>
-                setMonthCursor((current) =>
-                  current.month === 0
-                    ? { year: current.year - 1, month: 11 }
-                    : { year: current.year, month: current.month - 1 },
-                )
-              }
-            >
-              Edellinen
-            </button>
-            <h2>{formatMonthTitle(monthCursor.year, monthCursor.month)}</h2>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() =>
-                setMonthCursor((current) =>
-                  current.month === 11
-                    ? { year: current.year + 1, month: 0 }
-                    : { year: current.year, month: current.month + 1 },
-                )
-              }
-            >
-              Seuraava
-            </button>
-          </div>
-          <div className="weekday-row">
-            {weekdayLabels().map((label) => (
-              <span key={label}>{label}</span>
-            ))}
-          </div>
-          <div className="month-grid">
-            {monthGrid(monthCursor.year, monthCursor.month).map((dateKey, index) =>
-              dateKey ? (
+      {months.map((month) => (
+        <section key={month.key} className="month-group">
+          <h2 className="month-heading">
+            <Icon name="calendar" />
+            <span>{formatMonthHeadingEN(month.year, month.month)}</span>
+          </h2>
+          <div className="day-grid">
+            {[...new Set(month.clips.map((clip) => clip.dateKey))].map((dateKey) => {
+              const dayClips = month.clips.filter((clip) => clip.dateKey === dateKey);
+              return (
                 <button
                   key={dateKey}
                   type="button"
-                  className={`day-cell level-${heatmapLevel(counts.get(dateKey) ?? 0)} ${
-                    selectedDay === dateKey ? "is-selected" : ""
-                  }`}
-                  onClick={() => onNavigate({ view: "memories", mode: "calendar", dateKey })}
+                  className={openDay === dateKey ? "day-card is-open" : "day-card"}
+                  onClick={() => setOpenDay(openDay === dateKey ? null : dateKey)}
                 >
-                  <span>{Number(dateKey.slice(-2))}</span>
-                  <span className="sr-only">{counts.get(dateKey) ?? 0} klippiä</span>
+                  <span className="day-card-media">
+                    <VideoThumb clip={dayClips[0]} />
+                    <span className="day-card-play">
+                      <Icon name="play" />
+                    </span>
+                    {dayClips.length > 1 ? (
+                      <span className="day-card-count">×{dayClips.length}</span>
+                    ) : null}
+                  </span>
+                  <span className="day-card-caption">{formatCardDateEN(dateKey)}</span>
                 </button>
-              ) : (
-                <span key={`empty-${index}`} className="day-cell is-empty" />
-              ),
-            )}
+              );
+            })}
           </div>
-          {selectedDay ? (
-            <div className="day-sheet">
-              <h3>{formatDateHeading(selectedDay)}</h3>
-              {dayClips.length === 0 ? (
-                <p className="muted">Ei klippejä tältä päivältä.</p>
-              ) : (
-                <div className="clip-grid">
-                  {dayClips.map((clip) => (
-                    <ClipCard key={clip.id} clip={clip} onDelete={(id) => void removeClip(id)} />
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="muted">Avaa päivä nähdäksesi sen klipit.</p>
-          )}
-        </div>
-      ) : (
-        <div className="timeline">
-          {[...groups.entries()].map(([dateKey, dayClips]) => (
-            <section key={dateKey} className="day-group">
-              <h2>
-                <button
-                  type="button"
-                  className="text-btn"
-                  onClick={() => onNavigate({ view: "memories", mode: "calendar", dateKey })}
-                >
-                  {formatDateHeading(dateKey)}
-                </button>
-              </h2>
+          {openDay && month.clips.some((clip) => clip.dateKey === openDay) ? (
+            <div className="day-detail">
+              <h3>{formatCardDateEN(openDay)}</h3>
               <div className="clip-grid">
-                {dayClips.map((clip) => (
+                {(groups.get(openDay) ?? []).map((clip) => (
                   <ClipCard key={clip.id} clip={clip} onDelete={(id) => void removeClip(id)} />
                 ))}
               </div>
-            </section>
-          ))}
-        </div>
-      )}
+            </div>
+          ) : null}
+        </section>
+      ))}
     </section>
   );
 }

@@ -59,26 +59,26 @@ export function transitionCopy(transition: GeofenceTransition): {
 } {
   if (transition.type === "enter") {
     return {
-      title: `Saavuit: ${transition.place.name}`,
-      body: "Paikka vaihtui. Kuvaa 10 sekunnin hetki?",
+      title: `Arrived: ${transition.place.name}`,
+      body: "Place changed. Capture a 10-second moment?",
     };
   }
   if (transition.type === "exit") {
     return {
-      title: `Lähdit: ${transition.place.name}`,
-      body: "Liike havaittu. Kuvaa tämä siirtymä?",
+      title: `Left: ${transition.place.name}`,
+      body: "Movement detected. Capture this transition?",
     };
   }
   return {
     title: `${transition.from.name} → ${transition.to.name}`,
-    body: "Paikka vaihtui. Kuvaa hetki?",
+    body: "Place changed. Capture the moment?",
   };
 }
 
 export const DEMO_PLACES: Place[] = [
   {
     id: "place_home",
-    name: "Koti",
+    name: "Home",
     lat: 60.1699,
     lng: 24.9384,
     radiusM: 120,
@@ -86,7 +86,7 @@ export const DEMO_PLACES: Place[] = [
   },
   {
     id: "place_cafe",
-    name: "Kahvila",
+    name: "Café",
     lat: 60.1712,
     lng: 24.9416,
     radiusM: 80,
@@ -94,7 +94,7 @@ export const DEMO_PLACES: Place[] = [
   },
   {
     id: "place_work",
-    name: "Työ",
+    name: "Work",
     lat: 60.186,
     lng: 24.831,
     radiusM: 150,

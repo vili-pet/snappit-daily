@@ -9,7 +9,7 @@ export function EmptyState({
 }) {
   return (
     <div className="empty-state">
-      <p className="empty-kicker">Tyhjä näkymä</p>
+      <p className="empty-kicker">Nothing here yet</p>
       <h2>{title}</h2>
       <p>{body}</p>
       {action ? (

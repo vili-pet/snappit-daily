@@ -11,22 +11,22 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: "first-snappit",
     title: "1st Snappit",
-    description: "Tallenna ensimmäinen 10 sekunnin hetki.",
+    description: "Save your first 10-second moment.",
   },
   {
     id: "streak-starter",
     title: "Streak Starter",
-    description: "Pidä kolmen päivän putki.",
+    description: "Keep a three-day streak going.",
   },
   {
     id: "week-keeper",
-    title: "Viikon kertoja",
-    description: "Pidä seitsemän päivän putki.",
+    title: "Week Keeper",
+    description: "Keep a seven-day streak going.",
   },
   {
     id: "ten-clips",
-    title: "Kymmenen hetkeä",
-    description: "Tallenna kymmenen klippiä.",
+    title: "Ten Moments",
+    description: "Save ten clips.",
   },
 ];
 

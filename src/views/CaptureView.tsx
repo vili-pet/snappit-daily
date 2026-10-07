@@ -11,10 +11,11 @@ import {
 } from "../lib/media";
 import { CLIP_DURATION_MS } from "../lib/types";
 import { useApp, useProgress } from "../hooks/useApp";
+import type { Route } from "../lib/route";
 
 type Phase = "idle" | "live" | "recording" | "preview" | "error";
 
-export function CaptureView() {
+export function CaptureView({ onNavigate }: { onNavigate: (route: Route) => void }) {
   const { saveClip, currentPlace, settings } = useApp();
   const { streak, progress } = useProgress();
   const { support } = usePermissions();
@@ -98,6 +99,7 @@ export function CaptureView() {
     if (preview.url) URL.revokeObjectURL(preview.url);
     setPreview(null);
     setPhase("idle");
+    onNavigate({ view: "home" });
   };
 
   const importFile = async (file: File | undefined) => {
@@ -113,8 +115,9 @@ export function CaptureView() {
       });
       setPhase("idle");
       setError(null);
+      onNavigate({ view: "home" });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Tuonti epäonnistui.");
+      setError(cause instanceof Error ? cause.message : "Import failed.");
       setPhase("error");
     }
   };
@@ -124,11 +127,11 @@ export function CaptureView() {
   return (
     <section className="view capture-view">
       <header className="view-header">
-        <p className="kicker">Päivän hetki</p>
-        <h1>Kuvaa 10 sekuntia</h1>
+        <p className="kicker">Today's Snappit</p>
+        <h1>Capture Your Snappit</h1>
         <div className="stat-row">
-          <span className="chip">{streak.current} päivän putki</span>
-          <span className="chip">Taso {progress.level}</span>
+          <span className="chip">{streak.current} day streak</span>
+          <span className="chip">Level {progress.level}</span>
           {currentPlace ? <span className="chip">{currentPlace.name}</span> : null}
         </div>
       </header>
@@ -141,7 +144,7 @@ export function CaptureView() {
         {phase === "idle" || phase === "error" ? (
           <div className="viewfinder-idle">
             <p className="viewfinder-mark">10s</p>
-            <p>Yksi pieni otos päivästä. Ei mainoksia, ei tiliä.</p>
+            <p>One small moment from your day. No ads, no account.</p>
           </div>
         ) : null}
         {phase === "recording" ? (
@@ -151,14 +154,14 @@ export function CaptureView() {
               max={CLIP_DURATION_MS}
               label={`${remaining}`}
             />
-            <p aria-live="assertive">Kuvataan {remaining} s</p>
+            <p aria-live="assertive">Recording · {remaining}s left</p>
           </div>
         ) : null}
       </div>
 
       {!cameraOk ? (
         <p className="callout" role="status">
-          Kamera tai MediaRecorder ei ole tuettu. Tuo video tiedostona.
+          Camera or MediaRecorder is not supported here. Import a video file instead.
         </p>
       ) : null}
       {error ? (
@@ -171,16 +174,16 @@ export function CaptureView() {
         {phase === "idle" || phase === "error" ? (
           <>
             <button type="button" className="btn btn-primary" onClick={() => void attachStream()} disabled={!cameraOk}>
-              Avaa kamera
+              Open camera
             </button>
             <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
-              Tuo video
+              Import video
             </button>
           </>
         ) : null}
         {phase === "live" ? (
           <button type="button" className="shutter" onClick={() => void startRecording()}>
-            Kuvaa
+            Record
           </button>
         ) : null}
         {phase === "recording" ? (
@@ -194,16 +197,16 @@ export function CaptureView() {
               setPhase("idle");
             }}
           >
-            Peruuta
+            Cancel
           </button>
         ) : null}
         {phase === "preview" ? (
           <>
             <button type="button" className="btn btn-primary" onClick={() => void save()}>
-              Tallenna
+              Save
             </button>
             <button type="button" className="btn btn-ghost" onClick={() => void resetToLive()}>
-              Uudelleen
+              Retake
             </button>
           </>
         ) : null}
@@ -219,13 +222,13 @@ export function CaptureView() {
 
       <aside className="note">
         <p>
-          Taustatallennus ei toimi luotettavasti PWA:ssa. Pidä Snappit auki kuvauksen ajan.
-          Luvat: kamera ja valinnaisesti mikrofoni. Kaikki klipit jäävät tähän selaimeen
+          Background recording is not reliable in a PWA. Keep Snappit open while recording.
+          Permissions: camera and optionally microphone. All clips stay on this device
           (IndexedDB).
         </p>
-        {settings.demoDataEnabled ? <p>Demodata on päällä — omat tallenteet erottuvat siitä.</p> : null}
+        {settings.demoDataEnabled ? <p>Demo data is on — your own recordings are marked separately.</p> : null}
         {!inspectCameraSupport().mediaRecorder ? (
-          <p>MediaRecorder puuttuu; vain tuonti on käytettävissä.</p>
+          <p>MediaRecorder is missing; only import is available.</p>
         ) : null}
       </aside>
     </section>

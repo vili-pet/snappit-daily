@@ -1,11 +1,10 @@
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 import type { Route } from "../lib/route";
 
-const ITEMS: { route: Route; label: string; icon: "capture" | "memories" | "montages" | "settings" }[] = [
-  { route: { view: "capture" }, label: "Kuvaa", icon: "capture" },
-  { route: { view: "memories", mode: "list" }, label: "Muistot", icon: "memories" },
-  { route: { view: "montages" }, label: "Koosteet", icon: "montages" },
-  { route: { view: "settings" }, label: "Asetukset", icon: "settings" },
+const ITEMS: { route: Route; label: string; icon: IconName }[] = [
+  { route: { view: "home" }, label: "Home", icon: "home" },
+  { route: { view: "memories", mode: "list" }, label: "Timeline", icon: "timeline" },
+  { route: { view: "montages" }, label: "Montages", icon: "montages" },
 ];
 
 export function BottomNav({
@@ -16,12 +15,12 @@ export function BottomNav({
   onNavigate: (route: Route) => void;
 }) {
   return (
-    <nav className="bottom-nav" aria-label="Päänavigaatio">
+    <nav className="bottom-nav" aria-label="Main navigation">
       {ITEMS.map((item) => {
         const active =
-          item.route.view === "memories"
-            ? route.view === "memories"
-            : route.view === item.route.view;
+          item.route.view === "home"
+            ? route.view === "home" || route.view === "capture"
+            : item.route.view === route.view;
         return (
           <button
             key={item.label}

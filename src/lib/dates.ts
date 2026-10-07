@@ -159,3 +159,71 @@ export function weekdayLabels(): readonly string[] {
 export function compareDateKeys(a: string, b: string): number {
   return a.localeCompare(b);
 }
+
+const MONTHS_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
+
+/** "Today" or a short English weekday, e.g. "Thu". */
+export function formatDayLabelEN(dateKey: string, now = new Date()): string {
+  if (dateKey === toDateKey(now)) return "Today";
+  return parseDateKey(dateKey).toLocaleDateString("en-US", { weekday: "short" });
+}
+
+/** "Thu, Sep 17" style date used on timeline cards. */
+export function formatCardDateEN(dateKey: string): string {
+  return parseDateKey(dateKey).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/** "September 2026" month heading. */
+export function formatMonthHeadingEN(year: number, monthIndex: number): string {
+  return `${MONTHS_EN[monthIndex]} ${year}`;
+}
+
+/** "07 October 2026" — today line on the home card. */
+export function formatTodayLongEN(now = new Date()): string {
+  return now.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+export type MonthGroup = {
+  key: string;
+  year: number;
+  month: number;
+  clips: Clip[];
+};
+
+/** Group clips into calendar months, newest month and newest clip first. */
+export function groupClipsByMonth(clips: Clip[]): MonthGroup[] {
+  const map = new Map<string, Clip[]>();
+  for (const clip of [...clips].sort((a, b) => b.createdAt - a.createdAt)) {
+    const key = clip.dateKey.slice(0, 7);
+    const list = map.get(key) ?? [];
+    list.push(clip);
+    map.set(key, list);
+  }
+  return [...map.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([key, monthClips]) => {
+      const [year, month] = key.split("-").map(Number);
+      return { key, year: year ?? 1970, month: (month ?? 1) - 1, clips: monthClips };
+    });
+}

@@ -8,7 +8,7 @@ export function useTheme(theme: ThemePreference) {
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       const resolved = theme === "system" ? (prefersDark ? "dark" : "light") : theme;
       root.dataset.theme = resolved;
-      const color = resolved === "dark" ? "#161310" : "#f6f1e8";
+      const color = resolved === "dark" ? "#0f141a" : "#eef1f5";
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", color);
     };

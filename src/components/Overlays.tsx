@@ -4,17 +4,11 @@ import { useApp } from "../hooks/useApp";
 import type { Route } from "../lib/route";
 
 export function Overlays({ onNavigate }: { onNavigate: (route: Route) => void }) {
-  const { prompt, dismissPrompt, justUnlocked, dismissUnlock, toasts, dismissToast, settings } =
+  const { prompt, dismissPrompt, justUnlocked, dismissUnlock, toasts, dismissToast } =
     useApp();
 
   return (
     <>
-      {settings.demoDataEnabled ? (
-        <p className="demo-banner" role="status">
-          Demodata näkyvissä. Se on merkitty ja voidaan poistaa asetuksista.
-        </p>
-      ) : null}
-
       {prompt ? (
         <div className="sheet" role="dialog" aria-labelledby="prompt-title">
           <div className="sheet-card">
@@ -34,10 +28,10 @@ export function Overlays({ onNavigate }: { onNavigate: (route: Route) => void })
                   onNavigate({ view: "capture" });
                 }}
               >
-                Kuvaa hetki
+                Capture now
               </button>
               <button type="button" className="btn btn-ghost" onClick={dismissPrompt}>
-                Ei nyt
+                Not now
               </button>
             </div>
           </div>
@@ -47,11 +41,11 @@ export function Overlays({ onNavigate }: { onNavigate: (route: Route) => void })
       {justUnlocked[0] ? (
         <div className="sheet" role="dialog" aria-labelledby="unlock-title">
           <div className="sheet-card celebrate">
-            <p className="kicker">Saavutus</p>
+            <p className="kicker">Achievement</p>
             <h2 id="unlock-title">{achievementById(justUnlocked[0].id).title}</h2>
             <p>{achievementById(justUnlocked[0].id).description}</p>
             <button type="button" className="btn btn-primary" onClick={dismissUnlock}>
-              Jatka
+              Continue
             </button>
           </div>
         </div>

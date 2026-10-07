@@ -28,9 +28,9 @@ export function ClipCard({
         ) : (
           <div
             className="clip-placeholder"
-            style={{ background: `hsl(${clip.placeholderHue ?? 24} 40% 32%)` }}
+            style={{ background: `hsl(${clip.placeholderHue ?? 205} 42% 44%)` }}
           >
-            <span>Esikatselu</span>
+            <span>Preview</span>
           </div>
         )}
         <button
@@ -48,20 +48,20 @@ export function ClipCard({
             }
           }}
         >
-          {playing ? "Tauko" : "Toista"}
+          {playing ? "Pause" : "Play"}
         </button>
       </div>
       <div className="clip-meta">
         <p className="clip-time">{formatTime(clip.createdAt)}</p>
-        <p className="clip-place">{clip.placeLabel ?? "Ilman paikkaa"}</p>
-        {clip.isDemo ? <p className="demo-pill">Demodata</p> : null}
+        <p className="clip-place">{clip.placeLabel ?? "No place"}</p>
+        {clip.isDemo ? <p className="demo-pill">Demo</p> : null}
         <p className="clip-source">
-          {clip.source === "camera" ? "Kamera" : clip.source === "import" ? "Tuotu" : "Demo"}
+          {clip.source === "camera" ? "Camera" : clip.source === "import" ? "Imported" : "Demo"}
         </p>
       </div>
       {onDelete ? (
         <button type="button" className="text-btn" onClick={() => onDelete(clip.id)}>
-          Poista
+          Delete
         </button>
       ) : null}
     </article>

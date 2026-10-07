@@ -12,7 +12,7 @@ export function SequencePlayer({ clips, title }: { clips: Clip[]; title: string 
   }, [clips]);
 
   if (!current) {
-    return <p className="muted">Ei klippejä toistettavaksi.</p>;
+    return <p className="muted">No clips to play.</p>;
   }
 
   return (
@@ -32,11 +32,11 @@ export function SequencePlayer({ clips, title }: { clips: Clip[]; title: string 
           className="clip-placeholder tall"
           style={{ background: `hsl(${current.placeholderHue ?? 24} 40% 32%)` }}
         >
-          {current.placeLabel ?? "Esikatselu"}
+          {current.placeLabel ?? "Preview"}
         </div>
       )}
       <p className="muted">
-        {index + 1} / {clips.length} · peräkkäinen esikatselu
+        {index + 1} / {clips.length} · sequential preview
       </p>
     </div>
   );

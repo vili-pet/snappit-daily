@@ -1,35 +1,93 @@
 import { useMemo, useState } from "react";
 import { SequencePlayer } from "../components/SequencePlayer";
 import { EmptyState } from "../components/EmptyState";
+import { Icon } from "../components/Icon";
+import { VideoThumb } from "../components/VideoThumb";
 import { useObjectUrl } from "../hooks/useObjectUrl";
-import { montagePlan, summarizeMontage } from "../lib/montage";
-import type { RangePreset } from "../lib/types";
+import { montagePlan, selectClipsInRange, summarizeMontage, weekNumber } from "../lib/montage";
+import {
+  addDays,
+  endOfMonth,
+  endOfYear,
+  formatMonthHeadingEN,
+  startOfMonth,
+  startOfWeek,
+  startOfYear,
+  toDateKey,
+} from "../lib/dates";
+import type { DateRange, RangePreset } from "../lib/types";
 import { useApp } from "../hooks/useApp";
 
-const PRESETS: { id: RangePreset; label: string }[] = [
-  { id: "week", label: "Viikko" },
-  { id: "month", label: "Kuukausi" },
-  { id: "year", label: "Vuosi" },
+const MIN_CLIPS = 2;
+
+type Period = { range: DateRange; label: string; current: boolean };
+
+function periodsFor(preset: RangePreset, now: Date): Period[] {
+  if (preset === "week") {
+    return Array.from({ length: 4 }, (_, index) => {
+      const anchor = addDays(startOfWeek(now), -7 * index);
+      const range = {
+        startDateKey: toDateKey(anchor),
+        endDateKey: toDateKey(addDays(anchor, 6)),
+      };
+      return {
+        range,
+        current: index === 0,
+        label: index === 0 ? "This Week" : `Week ${weekNumber(anchor)}, ${anchor.getFullYear()}`,
+      };
+    });
+  }
+  if (preset === "month") {
+    return Array.from({ length: 4 }, (_, index) => {
+      const anchor = new Date(now.getFullYear(), now.getMonth() - index, 1);
+      const range = {
+        startDateKey: toDateKey(startOfMonth(anchor)),
+        endDateKey: toDateKey(endOfMonth(anchor)),
+      };
+      return {
+        range,
+        current: index === 0,
+        label:
+          index === 0
+            ? "This Month"
+            : formatMonthHeadingEN(anchor.getFullYear(), anchor.getMonth()),
+      };
+    });
+  }
+  return Array.from({ length: 2 }, (_, index) => {
+    const anchor = new Date(now.getFullYear() - index, 0, 1);
+    const range = {
+      startDateKey: toDateKey(startOfYear(anchor)),
+      endDateKey: toDateKey(endOfYear(anchor)),
+    };
+    return {
+      range,
+      current: index === 0,
+      label: index === 0 ? "This Year" : `${anchor.getFullYear()}`,
+    };
+  });
+}
+
+const TABS: { id: RangePreset; label: string }[] = [
+  { id: "week", label: "Weekly" },
+  { id: "month", label: "Monthly" },
+  { id: "year", label: "Yearly" },
 ];
 
 export function MontagesView() {
   const { clips, montages, createMontage } = useApp();
-  const [busy, setBusy] = useState<RangePreset | null>(null);
+  const [preset, setPreset] = useState<RangePreset>("week");
+  const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const now = new Date();
 
-  const plans = useMemo(
-    () =>
-      PRESETS.map((preset) => ({
-        ...preset,
-        plan: montagePlan(clips, preset.id, new Date()),
-      })),
-    [clips],
-  );
+  const periods = useMemo(() => periodsFor(preset, now), [preset]); // eslint-disable-line react-hooks/exhaustive-deps
+  const currentPlan = useMemo(() => montagePlan(clips, preset, now), [clips, preset]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const run = async (preset: RangePreset) => {
+  const run = async () => {
     setError(null);
-    setBusy(preset);
+    setBusy(true);
     setProgress(0.15);
     try {
       const tick = window.setInterval(() => {
@@ -39,52 +97,113 @@ export function MontagesView() {
       window.clearInterval(tick);
       setProgress(1);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Koosteen luonti epäonnistui.");
+      setError(cause instanceof Error ? cause.message : "Creating the montage failed.");
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
   return (
-    <section className="view montages-view">
+    <section className="view story-view">
       <header className="view-header">
-        <p className="kicker">Koosteet</p>
-        <h1>Viikko, kuukausi, vuosi</h1>
-        <p className="lede">
-          Selain yrittää koodata klipit yhdeksi tiedostoksi (canvas + MediaRecorder). Jos se ei
-          onnistu, saat rehellisen peräkkäisen esikatselun — ei tekaistua onnistumista.
-        </p>
+        <h1>Your Story</h1>
+        <p className="lede">Create beautiful video montages from your captured Snappits</p>
       </header>
 
-      <div className="preset-grid">
-        {plans.map(({ id, label, plan }) => (
-          <article key={id} className="card">
-            <h2>{label}</h2>
-            <p>
-              {plan.range.startDateKey} – {plan.range.endDateKey}
-            </p>
-            <p className="muted">{plan.clips.length} klippiä</p>
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={busy !== null || plan.clips.length === 0}
-              onClick={() => void run(id)}
-            >
-              {busy === id ? "Kootaan…" : "Koosta"}
-            </button>
-            {plan.clips.length > 0 ? (
-              <SequencePlayer clips={plan.clips} title={`${label} · esikatselu`} />
-            ) : (
-              <p className="muted">Ei klippejä tällä jaksolla.</p>
-            )}
-          </article>
+      <div className="underline-tabs" role="tablist" aria-label="Montage period">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={preset === tab.id}
+            className={preset === tab.id ? "is-active" : undefined}
+            onClick={() => setPreset(tab.id)}
+          >
+            {tab.label}
+          </button>
         ))}
+      </div>
+
+      <div className="period-track">
+        {periods.map((period) => {
+          const periodClips = selectClipsInRange(clips, period.range);
+          const enough = periodClips.length >= MIN_CLIPS;
+          const cover = periodClips[0];
+          if (period.current && enough) {
+            return (
+              <article key={period.label} className="period-card is-ready">
+                <button
+                  type="button"
+                  className="period-media"
+                  onClick={() => void run()}
+                  disabled={busy}
+                >
+                  <VideoThumb clip={cover} />
+                  <span className="day-card-play">
+                    <Icon name="play" />
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="period-create"
+                  onClick={() => void run()}
+                  disabled={busy}
+                >
+                  {busy ? "Creating…" : `Create ${preset === "week" ? "weekly" : preset === "month" ? "monthly" : "yearly"} montage`}
+                </button>
+                <p className="period-label">{period.label}</p>
+              </article>
+            );
+          }
+          if (period.current) {
+            return (
+              <article key={period.label} className="period-card is-progress">
+                <span className="period-ring">
+                  <Icon name="video" />
+                  <strong>
+                    {periodClips.length}/{MIN_CLIPS}
+                  </strong>
+                </span>
+                <p className="period-hint">
+                  {MIN_CLIPS - periodClips.length} more needed ({MIN_CLIPS} minimum required)
+                </p>
+                <p className="period-label">{period.label}</p>
+              </article>
+            );
+          }
+          if (enough) {
+            return (
+              <article key={period.label} className="period-card is-locked">
+                <span className="period-media">
+                  <VideoThumb clip={cover} />
+                  <span className="period-lock">
+                    <Icon name="lock" />
+                  </span>
+                </span>
+                <p className="period-label">{period.label}</p>
+              </article>
+            );
+          }
+          return (
+            <article key={period.label} className="period-card is-empty">
+              <span className="period-ring is-muted">
+                <Icon name="video-off" />
+              </span>
+              <p className="period-title">Not enough Snappits</p>
+              <p className="period-hint">
+                Only {periodClips.length} of {MIN_CLIPS} required
+              </p>
+              <p className="period-label">{period.label}</p>
+            </article>
+          );
+        })}
       </div>
 
       {busy ? (
         <div className="progress-line" role="status" aria-live="polite">
           <span style={{ width: `${Math.round(progress * 100)}%` }} />
-          <p>Koodataan parhaillaan… {Math.round(progress * 100)} %</p>
+          <p>Encoding… {Math.round(progress * 100)}%</p>
         </div>
       ) : null}
       {error ? (
@@ -93,34 +212,34 @@ export function MontagesView() {
         </p>
       ) : null}
 
-      <h2 className="section-title">Tallennetut koosteet</h2>
+      <h2 className="section-title">Saved montages</h2>
       {montages.length === 0 ? (
         <EmptyState
-          title="Ei tallennettuja koostetta"
-          body="Luo viikko-, kuukausi- tai vuosikooste, kun klippejä on kertynyt."
+          title="No saved montages"
+          body={`Collect at least ${MIN_CLIPS} Snappits in a period and create your first montage.`}
         />
       ) : (
         <ul className="montage-list">
           {montages.map((montage) => (
-            <li key={montage.id} className="card">
-              <h3>{montage.title}</h3>
-              <p className={montage.status === "encoded" ? "ok" : "muted"}>
-                {montage.status === "encoded" ? "Koodattu tiedosto" : "Vain esikatselu"}
-              </p>
-              <p>{summarizeMontage(montage)}</p>
+            <li key={montage.id} className="montage-card">
+              <div className="montage-card-head">
+                <h3>{montage.title}</h3>
+                <span className={montage.status === "encoded" ? "status-pill is-ok" : "status-pill"}>
+                  {montage.status === "encoded" ? "Encoded file" : "Preview only"}
+                </span>
+              </div>
+              <p className="muted">{summarizeMontage(montage)}</p>
               <MontageResult montageId={montage.id} />
             </li>
           ))}
         </ul>
       )}
 
-      <aside className="note">
-        <p>
-          Laajennuskohta: korvaa <code>composeMontage</code> ffmpeg.wasm- tai palvelinkoodauksella,
-          jos tarvitset tarkkaa leikkausta, ääntä ja vakaita kontteja. Tämä MVP ei väitä
-          tuottaneensa tiedostoa, ellei MediaRecorder oikeasti palauta blobia.
-        </p>
-      </aside>
+      <p className="current-range muted">
+        {preset === "week"
+          ? `Current week: ${currentPlan.range.startDateKey} – ${currentPlan.range.endDateKey}`
+          : `Current period: ${currentPlan.range.startDateKey} – ${currentPlan.range.endDateKey}`}
+      </p>
     </section>
   );
 }
@@ -137,5 +256,5 @@ function MontageResult({ montageId }: { montageId: string }) {
   if (montage.status === "encoded" && url) {
     return <video src={url} controls playsInline className="montage-video" />;
   }
-  return <SequencePlayer clips={selected} title="Peräkkäinen esikatselu" />;
+  return <SequencePlayer clips={selected} title="Sequential preview" />;
 }

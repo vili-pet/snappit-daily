@@ -52,21 +52,21 @@ export function SettingsView() {
   return (
     <section className="view settings-view">
       <header className="view-header">
-        <p className="kicker">Profiili</p>
-        <h1>Snappit</h1>
-        <p className="lede">Vili-Petterin mainokseton päiväkirja. Kaikki data pysyy laitteella.</p>
+        <p className="kicker">Profile</p>
+        <h1>Settings</h1>
+        <p className="lede">A private, ad-free daily diary. All data stays on your device.</p>
         <div className="stat-row">
-          <span className="chip">{streak.current} päivän putki</span>
+          <span className="chip">{streak.current} day streak</span>
           <span className="chip">{progress.xp} XP</span>
-          <span className="chip">Taso {progress.level}</span>
+          <span className="chip">Level {progress.level}</span>
         </div>
-        <div className="xp-bar" aria-label={`Tason edistyminen ${progress.xpIntoLevel} / ${progress.xpForLevel}`}>
+        <div className="xp-bar" aria-label={`Level progress ${progress.xpIntoLevel} / ${progress.xpForLevel}`}>
           <span style={{ width: `${progress.xpIntoLevel}%` }} />
         </div>
       </header>
 
       <section className="card">
-        <h2>Saavutukset</h2>
+        <h2>Achievements</h2>
         <ul className="achievement-list">
           {ACHIEVEMENTS.map((item) => {
             const unlocked = achievements.some((entry) => entry.id === item.id);
@@ -74,7 +74,7 @@ export function SettingsView() {
               <li key={item.id} className={unlocked ? "is-on" : undefined}>
                 <strong>{item.title}</strong>
                 <span>{item.description}</span>
-                <em>{unlocked ? "Avattu" : "Lukittu"}</em>
+                <em>{unlocked ? "Unlocked" : "Locked"}</em>
               </li>
             );
           })}
@@ -82,9 +82,9 @@ export function SettingsView() {
       </section>
 
       <section className="card">
-        <h2>Ulkoasu</h2>
+        <h2>Appearance</h2>
         <fieldset className="segment">
-          <legend className="sr-only">Teema</legend>
+          <legend className="sr-only">Theme</legend>
           {(["system", "light", "dark"] as const).map((theme) => (
             <button
               key={theme}
@@ -92,29 +92,29 @@ export function SettingsView() {
               className={settings.theme === theme ? "is-active" : undefined}
               onClick={() => void updateSettings({ theme })}
             >
-              {theme === "system" ? "Järjestelmä" : theme === "light" ? "Vaalea" : "Tumma"}
+              {theme === "system" ? "System" : theme === "light" ? "Light" : "Dark"}
             </button>
           ))}
         </fieldset>
       </section>
 
       <section className="card">
-        <h2>Demodata</h2>
-        <p>Näytä valmiit merkitty klipit ilman kameraa tai sijaintia.</p>
+        <h2>Demo data</h2>
+        <p>Show pre-made demo clips without using the camera or location.</p>
         <button
           type="button"
           className="btn btn-primary"
           onClick={() => void toggleDemoData(!settings.demoDataEnabled)}
         >
-          {settings.demoDataEnabled ? "Poista demodata" : "Käytä demodataa"}
+          {settings.demoDataEnabled ? "Remove demo data" : "Enable demo data"}
         </button>
       </section>
 
       <section className="card">
-        <h2>Paikat ja geofence</h2>
+        <h2>Places and geofence</h2>
         <p>
-          Seuranta toimii vain sovelluksen ollessa auki. Selain ei tarjoa luotettavaa
-          taustapaikannusta asennetussakaan PWA:ssa.
+          Tracking only works while the app is open. Browsers do not offer reliable background
+          location, even in an installed PWA.
         </p>
         <label className="toggle">
           <input
@@ -122,7 +122,7 @@ export function SettingsView() {
             checked={settings.geofenceEnabled}
             onChange={(event) => void updateSettings({ geofenceEnabled: event.target.checked })}
           />
-          <span>Seuraa paikkoja kun sovellus on auki</span>
+          <span>Follow places while the app is open</span>
         </label>
         <label className="toggle">
           <input
@@ -130,7 +130,7 @@ export function SettingsView() {
             checked={settings.demoLocationMode}
             onChange={(event) => void updateSettings({ demoLocationMode: event.target.checked })}
           />
-          <span>Demopaikannus (testattavat siirtymät)</span>
+          <span>Demo location (testable transitions)</span>
         </label>
         <label className="toggle">
           <input
@@ -138,7 +138,7 @@ export function SettingsView() {
             checked={settings.attachPlaceLabels}
             onChange={(event) => void updateSettings({ attachPlaceLabels: event.target.checked })}
           />
-          <span>Liitä paikkanimi uusiin klippeihin</span>
+          <span>Attach place names to new clips</span>
         </label>
         <label className="toggle">
           <input
@@ -146,26 +146,26 @@ export function SettingsView() {
             checked={settings.showExactLocation}
             onChange={(event) => void updateSettings({ showExactLocation: event.target.checked })}
           />
-          <span>Näytä tarkat koordinaatit (ei oletuksena)</span>
+          <span>Show exact coordinates (off by default)</span>
         </label>
         <p className="muted">
-          Nyt: {currentPlace?.name ?? "ei paikassa"}
+          Now: {currentPlace?.name ?? "not at any place"}
           {settings.showExactLocation && settings.mockedLocation
             ? ` · ${settings.mockedLocation.lat.toFixed(4)}, ${settings.mockedLocation.lng.toFixed(4)}`
             : ""}
         </p>
         <div className="row wrap">
           <button type="button" className="btn btn-ghost" onClick={() => void setMockedLocation(DEMO_PLACES[0])}>
-            Saavun kotiin
+            Arrive home
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => void setMockedLocation(DEMO_OUTSIDE)}>
-            Lähden kotoa
+            Leave home
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => void setMockedLocation(DEMO_PLACES[1])}>
-            Saavun kahvilaan
+            Arrive at café
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => void setMockedLocation(DEMO_PLACES[2])}>
-            Saavun töihin
+            Arrive at work
           </button>
         </div>
         <ul className="place-list">
@@ -174,7 +174,7 @@ export function SettingsView() {
               <div>
                 <strong>{place.name}</strong>
                 <span>
-                  {place.kind === "home" ? "Koti" : "Oma paikka"} · noin {place.radiusM} m
+                  {place.kind === "home" ? "Home" : "Custom place"} · about {place.radiusM} m
                 </span>
                 {settings.showExactLocation ? (
                   <span className="muted">
@@ -184,7 +184,7 @@ export function SettingsView() {
               </div>
               {place.kind !== "home" ? (
                 <button type="button" className="text-btn" onClick={() => void removePlace(place.id)}>
-                  Poista
+                  Delete
                 </button>
               ) : null}
             </li>
@@ -192,11 +192,11 @@ export function SettingsView() {
         </ul>
         <div className="row">
           <label className="field grow">
-            <span>Uusi paikka (demopisteestä)</span>
-            <input value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder="Nimi" />
+            <span>New place (from demo point)</span>
+            <input value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder="Name" />
           </label>
           <label className="field">
-            <span>Säde (m)</span>
+            <span>Radius (m)</span>
             <input
               type="number"
               min={30}
@@ -208,46 +208,46 @@ export function SettingsView() {
         </div>
         <div className="row">
           <button type="button" className="btn btn-ghost" onClick={() => void saveCurrentAsPlace()}>
-            Tallenna paikka
+            Save place
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => void resetDemoPlaces()}>
-            Palauta esimerkkipaikat
+            Restore example places
           </button>
         </div>
       </section>
 
       <section className="card">
-        <h2>Luvat ja yksityisyys</h2>
+        <h2>Permissions and privacy</h2>
         <ul className="kv">
           <li>
-            <span>Kamera</span>
+            <span>Camera</span>
             <strong>{labelPermission(camera, support.getUserMedia)}</strong>
           </li>
           <li>
-            <span>Sijainti</span>
+            <span>Location</span>
             <strong>{labelPermission(location, "geolocation" in navigator)}</strong>
           </li>
           <li>
             <span>MediaRecorder</span>
-            <strong>{support.mediaRecorder ? "Tuettu" : "Ei tukea"}</strong>
+            <strong>{support.mediaRecorder ? "Supported" : "Not supported"}</strong>
           </li>
         </ul>
         <p>
-          Snappit ei lähetä klippejä, sijaintia tai tunnisteita palvelimelle. Paikat
-          tallennetaan paikallisesti; käyttöliittymä näyttää nimet, ei karttaa.
+          Snappit never uploads clips, location or identifiers to a server. Places are stored
+          locally; the UI shows names, never a map.
         </p>
       </section>
 
       <section className="card">
-        <h2>Asenna</h2>
-        <p>Asennettava PWA. iOS: Jaa → Lisää Koti-valikkoon.</p>
+        <h2>Install</h2>
+        <p>Installable PWA. iOS: Share → Add to Home Screen.</p>
         <button
           type="button"
           className="btn btn-primary"
           disabled={!installEvent}
           onClick={() => void installEvent?.prompt()}
         >
-          {installEvent ? "Asenna sovellus" : "Asennusvalmis selaimen valikosta"}
+          {installEvent ? "Install app" : "Use the browser menu to install"}
         </button>
       </section>
     </section>
@@ -255,10 +255,10 @@ export function SettingsView() {
 }
 
 function labelPermission(state: string, supported: boolean): string {
-  if (!supported) return "Ei tukea";
-  if (state === "granted") return "Sallittu";
-  if (state === "denied") return "Evätty";
-  return "Ei kysytty";
+  if (!supported) return "Not supported";
+  if (state === "granted") return "Allowed";
+  if (state === "denied") return "Denied";
+  return "Not asked";
 }
 
 interface BeforeInstallPromptEvent extends Event {
